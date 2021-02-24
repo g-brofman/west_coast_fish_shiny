@@ -14,8 +14,17 @@ library(tidyverse)
 library(shinydashboard)
 library(shinythemes)
 library(hrbrthemes)
+library(here)
 
-fish <- data.table::fread("fish2.csv")
+# -----------------------------------------------------------------
+fish <- read_csv(here("west_coast_eez_data","SAU EEZ 848 v48-0.csv")) %>%
+    select(4:16)
+
+# species by year, landed value, and gear_type
+fish_category_gear <- fish %>%
+    group_by(year, common_name, gear_type) %>%
+    summarize(landed_value = sum(landed_value))
+# -----------------------------------------------------------------
 
 my_theme <- bs_theme(
     bg = "slategray",
@@ -56,33 +65,33 @@ ui <- dashboardPage(skin = "blue",
                             # took this next tab from a different example - it's not showing up yet
                             tabItem(tabName = "home_tab",
                                     h3("I'm not showing up right now:"),
-                                    p("This app will show blah blah blah")#end of p
+                                    p("Data/app summary:This app shows blah blah blah for the West Coast of the U.S. In 1983, Economic Exclusion Zones (EEZs) were implemented. An EEZ is blah blah blah. In this app you can observe visualizations of x, y, and z based on inputs of a,b, and c")#end of p
                             ),#end of tabItem1
                             tabItem(tabName = "fishermen_tab",
                                     h3("Fish or not a fish?"),
                                     p("Description blah blah text")#end of p
                             ), # end of tabItem2
                             tabItem(tabName = "test_tab",
-                                    h3("About this app"),
-                                    p("This app shows blah blah blah for the West Coast of the U.S. In 1983, Economic Exclusion Zones (EEZs) were implemented. An EEZ is blah blah blah. In this app you can observe visualizations of x, y, and z based on inputs of a,b, and c."),#end of p
+                                    h3("other interesting thing"),
+                                    p("WOW!"),#end of p
                                     p("Data for this app was provided by Sea Around Us (link here)")#end of p
                             ),#end of tabItem2_b
 
                             tabItem(tabName = "fish_graph_tab",
                                     fluidRow(
-                                        shinydashboard::box(title = "Catch sum by entity graph",
-                                                            selectInput("fishing_entity_name",
-                                                                        label = h4("Choose entity name (country):"),
-                                                                        choices = c(unique(fish$fishing_entity_name)#end of unique
+                                        shinydashboard::box(title = "Catch value by method graph",
+                                                            selectInput("common_name",
+                                                                        label = h4("Choose fish species"),
+                                                                        choices = c(unique(fish_category_gear$common_name)#end of unique
                                                                         ),#end of c
                                                                         selected = 1,
                                                                         multiple = FALSE
 
                                                             ),#end of selectInput
                                                             hr(),
-                                                            fluidRow(column(3, verbatimTextOutput("value"))# also added this hr section, not doing anything
+                                                            fluidRow(column(3, verbatimTextOutput("value"))#end o fluidRow
                                                             )),#end of box
-                                        shinydashboard::box(plotOutput(outputId = "fish_plot")#end of plotOutput (here is where i ended in script, and it works!)
+                                        shinydashboard::box(plotOutput(outputId = "fish_plot")#end of plotOutput
                                         )#end of box
                                     )#end of fluidRow
                             )#end of tabItem3
@@ -99,8 +108,8 @@ server <- function(input, output) {
 
 
     fish_select <- reactive({
-        fish %>%
-            filter(fishing_entity_name == input$fishing_entity_name)#end of filter
+        fish_category_gear %>%
+            filter(common_name == input$common_name)#end of filter
 
 
     }#end of reactive({})
@@ -111,12 +120,12 @@ server <- function(input, output) {
 
     output$fish_plot <- renderPlot({
 
-        ggplot(data = fish_select(), aes(x = year, y = catch_sum)) +
+        ggplot(data = fish_category_gear(), aes(x = year, y = landed_value)) +
             geom_point() #removed point color aspect
 
     })
 
-    output$value <- renderPrint({ input$fishing_entity_name }) # this is the last thing I added
+    output$value <- renderPrint({ input$common_name }) # this is the last thing I added
 }
 
 
