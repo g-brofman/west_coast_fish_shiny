@@ -120,8 +120,8 @@ server <- function(input, output) {
 
     output$fish_plot <- renderPlot({
 
-        ggplot(data = fish_category_gear(), aes(x = year, y = landed_value)) +
-            geom_point() #removed point color aspect
+        ggplot(data = fish_select(), aes(x = year, y = landed_value)) +
+            geom_point(aes(color = gear_type)) #removed point color aspect
 
     })
 
