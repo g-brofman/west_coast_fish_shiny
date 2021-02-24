@@ -10,10 +10,10 @@ fish_by_gear_allyears <- fish_data_raw_dg %>%
   arrange(gear_type)
 
 fish_treeable <- fish_by_gear_allyears %>% 
-  select(commercial_group, common_name) %>% 
+  select(gear_type,commercial_group, common_name, landed_value) %>% 
   group_by(commercial_group)
 
-treemap(fish_by_gear_allyears,
+treemap(fish_treeable,
         index= c("commercial_group", "common_name"),
 vSize="landed_value",
 type="index")

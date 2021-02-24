@@ -15,7 +15,7 @@ library(shinydashboard)
 library(shinythemes)
 library(hrbrthemes)
 
-fish <- data.table::fread("fish2.csv")
+fish <- data.table::fread(here("grave", "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
 
 my_theme <- bs_theme(
     bg = "slategray",
@@ -85,7 +85,29 @@ ui <- dashboardPage(skin = "blue",
                                         shinydashboard::box(plotOutput(outputId = "fish_plot")#end of plotOutput (here is where i ended in script, and it works!)
                                         )#end of box
                                     )#end of fluidRow
-                            )#end of tabItem3
+                            ),
+                            #end of tabItem3
+                            tabItem(tabName = "tree_graph_tab",
+                                    fluidRow(
+                                        shinydashboard::box(title = "Fish Catch by Gear",
+                                                            selectInput("gear_type",
+                                                                        label = h4("Choose Gear Type:"),
+                                                                        choices = c(unique(
+                                                                        source("tree_map_script.R",
+                                                                               local = TRUE), #end of source 
+                                                                                           fish_treeable$gear_type) #end of unique
+                                                                        ),#end of c
+                                                                        selected = 1,
+                                                                        multiple = FALSE
+                                                                        
+                                                            ),#end of selectInput
+                                                            br(),
+                                                            fluidRow(column(3, verbatimTextOutput("landed_value")) # changed hr to br, just to see.
+                                                            )),#end of box
+                                        shinydashboard::box(plotOutput(outputId = "gear_tree")#end of plotOutput
+                                        )#end of box
+                                    )#end of fluidRow
+                            )#end of tabItem4
                         )#end of tabItems
 
 
@@ -117,6 +139,18 @@ server <- function(input, output) {
     })
 
     output$value <- renderPrint({ input$fishing_entity_name }) # this is the last thing I added
+    
+    ## Creating a reactive treeplot
+    output$gear_tree <- renderPlot({
+        source("tree_map_script.R",
+               local = TRUE)
+        treemap(fish_treeable,
+               index= c("commercial_group", "common_name"), # End of index
+               vSize="landed_value",
+               type="index") #end of treemap()
+        
+        
+    }) ## End of tree plot squiggle brackets.
 }
 
 
