@@ -64,11 +64,17 @@ ui <- dashboardPage(skin = "blue",
                         tabItems(
                             # took this next tab from a different example - it's not showing up yet
                             tabItem(tabName = "home_tab",
-                                    h3("I'm not showing up right now:"),
-                                    p("App summary:This application provides visualizations of fish landings within the EEZ of the West Coast of the U.S. Economic Exclusion Zones (EEZs) were implemented in 1983, allowing for nations to hold jurisdiction over natural resources along their coasts (NOAA). The United States exercises sovereign control over a 200 In this app you can observe visualizations of x, y, and z based on inputs of a,b, and c")#end of p
+                                    h3("App description:"),
+                                    p("App summary:This application provides visualizations of fish landings within the EEZ of the West Coast of the U.S. Economic Exclusion Zones (EEZs) were implemented in 1983, allowing for nations to hold jurisdiction over natural resources along their coasts (NOAA). The United States exercises sovereign control over a 200 mile width strip of ocean Along California, Oregon, and Washington (there is also an Alaskan EEZ, but is excluded from this app). In this app you can observe visualizations of fish landings by weight and value, gear type, and species from 1950 - 2016"),#end of p
+                                    p("Data source: data sets for this application were provided by Sea Around Us, a research initiative which collects fisheries-realted data around the world in an effort to assess the impact of fishereis"), # end of p
+                                    img(src = "sea_around_us.png"),
+                                    a("Sea Around Us",
+                                      href = "http://www.seaaroundus.org/",
+                                      align = "center") # end of a
                             ),#end of tabItem1
                             tabItem(tabName = "fishermen_tab",
                                     h3("Fish or not a fish?"),
+                                    p("word"),
                                     p("Description blah blah text")#end of p
                             ), # end of tabItem2
                             tabItem(tabName = "test_tab",
