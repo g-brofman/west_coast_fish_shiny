@@ -101,15 +101,15 @@ ui <- dashboardPage(skin = "blue",
                                                             br(),
                                                             fluidRow(column(3, verbatimTextOutput("landed_value")) # changed hr to br, just to see.
                                                             )),#end of box
-                                        shinydashboard::box(plotOutput(outputId = "fish_tree")#end of plotOutput
-                                        )#end of box
-                                    )#end of fluidRow
-                            )#end of tabItem4
-                        )#end of tabItems
+                                        shinydashboard::box(plotOutput(outputId = "fish_tree"),   #end of plotOutput
+                                        ) #end of box
+                                    ) #end of fluidRow
+                            ) #end of tabItem4
+                        ) #end of tabItems
 
 
-                    )#end of dashboardBody
-)#end of dashboardPage
+                    ) #end of dashboardBody
+) #end of dashboardPage
 
 
 # -------------------------------------------------------------------------
@@ -120,7 +120,6 @@ server <- function(input, output) {
     fish_select <- reactive({
         fish %>%
             filter(fishing_entity_name == input$fishing_entity_name)#end of filter
-
 
     }#end of reactive({})
     )#end of reactive
