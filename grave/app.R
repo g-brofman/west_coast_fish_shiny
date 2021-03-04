@@ -42,7 +42,11 @@ ui <- dashboardPage(skin = "blue",
                                              icon = icon("fas fa-anchor")),
                                     menuItem("Fish",
                                              tabName = "fish_graph_tab",
+                                             icon = icon("fish")),
+                                    menuItem("Gear",
+                                             tabName = "tree_graph_tab",
                                              icon = icon("fish")))),
+
 
                     dashboardBody(
                         fluidPage(theme = my_theme,
@@ -68,41 +72,41 @@ ui <- dashboardPage(skin = "blue",
                                     p("Data for this app was provided by Sea Around Us (link here)")#end of p
                             ),#end of tabItem2_b
 
-                            tabItem(tabName = "fish_graph_tab",
-                                    fluidRow(
-                                        shinydashboard::box(title = "Catch sum by entity graph",
-                                                            selectInput("fishing_entity_name",
-                                                                        label = h4("Choose entity name (country):"),
-                                                                        choices = c(unique(fish$fishing_entity_name)#end of unique
-                                                                        ),#end of c
+                tabItem(tabName = "fish_graph_tab",
+                fluidRow(
+               shinydashboard::box(title = "Catch sum by entity graph",
+                selectInput("fishing_entity_name",
+                label = h4("Choose entity name (country):"),
+       choices = c(unique(fish$fishing_entity_name)#end of unique
+                                      ),#end of c
                                                                         selected = 1,
-                                                                        multiple = FALSE
+       multiple = FALSE
 
                                                             ),#end of selectInput
                                                             hr(),
                                                             fluidRow(column(3, verbatimTextOutput("value"))# also added this hr section, not doing anything
                                                             )),#end of box
-                                        shinydashboard::box(plotOutput(outputId = "fish_plot")#end of plotOutput (here is where i ended in script, and it works!)
+         shinydashboard::box(plotOutput(outputId = "fish_plot") #end of plotOutput (here is where i ended in script, and it works!)
                                         )#end of box
                                     )#end of fluidRow
                             ),
                             #end of tabItem3
-                            tabItem( source(file = "treemap.R",
-                                            local = TRUE),    #end of source()
-                                     tabName = "tree_graph_tab",
+                            tabItem(tabName = "tree_graph_tab",
                                     fluidRow(
                 shinydashboard::box(title = "Fish Catch by Gear",
         selectInput("gear_type",
         label = h4("Choose Gear Type:"),
       choices = c(unique(fish_by_gear$gear_type) #end of unique
                      ),#end of c
-             selected = 1,
-            multiple = FALSE), #end of selectInput
-                                                            br(),
-                                                            fluidRow(column(3, verbatimTextOutput("landed_value")) # changed hr to br, just to see.
+      multiple = FALSE), #end of selectInput
+            hr(),
+          fluidRow(column(3,
+          verbatimTextOutput("landed_value")) # changed hr to hr, just to see.
                                                             )),#end of box
-                                        shinydashboard::box(plotOutput(outputId = "fish_tree"),   #end of plotOutput
-                                        ) #end of box
+   shinydashboard::box(plotOutput(outputId = "fish_tree"),   #end of plotOutput
+   #                     source(file = "treemap.R",
+   #                            local = TRUE),    #end of source()
+                       ), #end of box
                                     ) #end of fluidRow
                             ) #end of tabItem4
                         ) #end of tabItems
@@ -136,10 +140,10 @@ server <- function(input, output) {
 
     output$value <- renderPrint({ input$fishing_entity_name }) # this is the last thing I added
 
+
     ## Creating a reactive treeplot
     output$fish_tree <- renderPlot({
-        source( file = "treemap.R",
-               local = TRUE)
+      source(file = "treemap.R", local = TRUE)
         treemap(fish_by_gear,
                index= c("commercial_group", "common_name"), # End of index
                vSize="landed_value",
@@ -147,7 +151,9 @@ server <- function(input, output) {
 
 
     }) ## End of tree plot squiggle brackets.
-}
+    output$landed_value <- renderPrint({input$gear_type})  # trying to have the renderPrint work for the tree graph tab!
+
+} # End of server squigglies
 
 
 
