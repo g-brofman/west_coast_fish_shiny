@@ -37,7 +37,7 @@ my_theme <- bs_theme(
 # icons below from: https://fontawesome.com/icons?d=gallery&q=world
 # Creating the user interface
 ui <- dashboardPage(skin = "blue",
-                    dashboardHeader(title = "Grace & Dylan luv fish"),
+                    dashboardHeader(title = "Fish 4 Life"),
                     dashboardSidebar(
                         sidebarMenu(id = "menu",
                                     menuItem("Home",
@@ -55,7 +55,7 @@ ui <- dashboardPage(skin = "blue",
 
                     dashboardBody(
                         fluidPage(theme = my_theme,
-                                  h3("Really important things about fish here"), #header on all tabs
+                                  h3("Visualizing fish landings on the West Coast"), #header on all tabs
                                   p("Fish tend to have two eyes", #subheader on all tabs
                                     a("What IS a fish exactly?", #subheader on all tabs
                                       href = "https://en.wikipedia.org/wiki/Fish")#end of a
@@ -65,7 +65,7 @@ ui <- dashboardPage(skin = "blue",
                             # took this next tab from a different example - it's not showing up yet
                             tabItem(tabName = "home_tab",
                                     h3("I'm not showing up right now:"),
-                                    p("Data/app summary:This app shows blah blah blah for the West Coast of the U.S. In 1983, Economic Exclusion Zones (EEZs) were implemented. An EEZ is blah blah blah. In this app you can observe visualizations of x, y, and z based on inputs of a,b, and c")#end of p
+                                    p("App summary:This application provides visualizations of fish landings within the EEZ of the West Coast of the U.S. Economic Exclusion Zones (EEZs) were implemented in 1983, allowing for nations to hold jurisdiction over natural resources along their coasts (NOAA). The United States exercises sovereign control over a 200 In this app you can observe visualizations of x, y, and z based on inputs of a,b, and c")#end of p
                             ),#end of tabItem1
                             tabItem(tabName = "fishermen_tab",
                                     h3("Fish or not a fish?"),
@@ -125,8 +125,8 @@ server <- function(input, output) {
 
     })
 
-    output$value <- renderPrint({ input$common_name }) # this is the last thing I added
-}
+    output$value <- renderPrint({ input$common_name })
+} #end of first {} in server
 
 
 
