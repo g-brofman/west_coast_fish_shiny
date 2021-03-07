@@ -16,10 +16,12 @@ library(shinythemes)
 library(hrbrthemes)
 library(d3Tree)
 library(ECharts2Shiny)
+library(here)
+library(treemap)
 
-fish <- data.table::fread(here("grave", "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
+fish <- data.table::fread(here( "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
 
-westcoast_eez_raw <- read_csv(here("grave", "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
+westcoast_eez_raw <- read_csv(here("west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
 
 fish_by_gear <- westcoast_eez_raw %>%
   select(gear_type, tonnes, landed_value, commercial_group, common_name)
@@ -156,7 +158,7 @@ gear_filtered <- reactive({
 
 
     ## Creating a reactive treeplot
-    output$fish_tree <- renderTreeMap({
+    output$fish_tree <- renderPlot({
       fish_tree <- treemap(gear_filtered(),
                            index=c("commercial_group","common_name"),
                            vSize="tonnes",
@@ -171,7 +173,8 @@ gear_filtered <- reactive({
       ) #end of treemap()
        #End onf d3tree3
 
-
+    }) # End of treeplot squiggles
+      output$landed_value <- renderPrint({input$gear_type})
 
 
 
@@ -182,8 +185,8 @@ gear_filtered <- reactive({
       #          type="index") #end of treemap()
 
 
-    }) ## End of tree plot squiggle brackets.
-    #output$landed_value <- renderPrint({input$gear_type})  # trying to have the renderPrint work for the tree graph tab!
+    ## End of tree plot squiggle brackets.
+   #  output$landed_value <- renderPrint({input$gear_type})  # trying to have the renderPrint work for the tree graph tab!
 
 } # End of server squigglies
 
