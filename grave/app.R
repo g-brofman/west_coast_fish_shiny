@@ -14,6 +14,18 @@ library(tidyverse)
 library(shinydashboard)
 library(shinythemes)
 library(hrbrthemes)
+
+library(d3Tree)
+library(ECharts2Shiny)
+
+#d fish <- data.table::fread(here("grave", "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
+
+#d westcoast_eez_raw <- read_csv(here("grave", "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
+
+#d fish_by_gear <- westcoast_eez_raw %>%
+#d   select(gear_type, tonnes, landed_value, commercial_group, common_name)
+
+=======
 library(here)
 
 # -----------------------------------------------------------------
@@ -25,6 +37,7 @@ fish_category_gear <- fish %>%
     group_by(year, common_name, gear_type) %>%
     summarize(landed_value = sum(landed_value))
 # -----------------------------------------------------------------
+
 
 my_theme <- bs_theme(
     bg = "slategray",
@@ -51,7 +64,11 @@ ui <- dashboardPage(skin = "blue",
                                              icon = icon("fas fa-anchor")),
                                     menuItem("Fish",
                                              tabName = "fish_graph_tab",
+                                             icon = icon("fish")),
+                                    menuItem("Gear",
+                                             tabName = "tree_graph_tab",
                                              icon = icon("fish")))),
+
 
                     dashboardBody(
                         fluidPage(theme = my_theme,
@@ -77,6 +94,7 @@ ui <- dashboardPage(skin = "blue",
                                     p("Data for this app was provided by Sea Around Us (link here)")#end of p
                             ),#end of tabItem2_b
 
+
                             tabItem(tabName = "fish_graph_tab",
                                     fluidRow(
                                         shinydashboard::box(title = "Catch value by method graph",
@@ -85,21 +103,41 @@ ui <- dashboardPage(skin = "blue",
                                                                         choices = c(unique(fish_category_gear$common_name)#end of unique
                                                                         ),#end of c
                                                                         selected = 1,
-                                                                        multiple = FALSE
+       multiple = FALSE
 
                                                             ),#end of selectInput
                                                             hr(),
                                                             fluidRow(column(3, verbatimTextOutput("value"))#end o fluidRow
                                                             )),#end of box
+
                                         shinydashboard::box(plotOutput(outputId = "fish_plot")#end of plotOutput
                                         )#end of box
                                     )#end of fluidRow
-                            )#end of tabItem3
-                        )#end of tabItems
+                            ),
+                            #end of tabItem3
+                            tabItem(tabName = "tree_graph_tab",
+                                    fluidRow(
+                shinydashboard::box(title = "Fish Catch by Gear",
+        selectInput(inputId = "gear_type",
+        label = h4("Choose Gear Type:"),
+      choices = c(unique(fish_by_gear$gear_type) #end of unique
+                     ),#end of c
+      multiple = FALSE), #end of selectInput
+            hr(),
+          fluidRow(column(1)
+          # verbatimTextOutput("landed_value")) # changed br to hr, just to see.
+                                                            )),#end of box
+   shinydashboard::box(plotOutput(outputId = "fish_tree"),   #end of plotOutput
+   #                     source(file = "treemap.R",
+   #                            local = TRUE),    #end of source()
+                       ), #end of box
+                                    ) #end of fluidRow
+                            ) #end of tabItem4
+                        ) #end of tabItems
 
 
-                    )#end of dashboardBody
-)#end of dashboardPage
+                    ) #end of dashboardBody
+) #end of dashboardPage
 
 
 # -------------------------------------------------------------------------
@@ -110,7 +148,6 @@ server <- function(input, output) {
     fish_select <- reactive({
         fish_category_gear %>%
             filter(common_name == input$common_name)#end of filter
-
 
     }#end of reactive({})
     )#end of reactive
@@ -125,8 +162,51 @@ server <- function(input, output) {
 
     })
 
+
+
+
+gear_filtered <- reactive({
+  fish_by_gear %>%
+    filter(gear_type == input$gear_type)
+})
+
+
+
+    ## Creating a reactive treeplot
+    output$fish_tree <- renderTreeMap({
+      fish_tree <- treemap(gear_filtered(),
+                           index=c("commercial_group","common_name"),
+                           vSize="tonnes",
+                           type="index",
+                           palette = "Set2",
+                           fontsize.labels=c(15,12),
+                           fontcolor.labels=c("black","white"),
+                           align.labels=list(
+                             c("center", "top"),
+                             c("center", "bottom")
+                           )
+      ) #end of treemap()
+       #End onf d3tree3
+
+
+
+
+
+      # source(file = "treemap.R", local = TRUE)
+      #   treemap(fish_by_gear,
+      #          index= c("commercial_group", "common_name"), # End of index
+      #          vSize="landed_value",
+      #          type="index") #end of treemap()
+
+
+    }) ## End of tree plot squiggle brackets.
+    #output$landed_value <- renderPrint({input$gear_type})  # trying to have the renderPrint work for the tree graph tab!
+
+} # End of server squigglies
+=======
     output$value <- renderPrint({ input$common_name })
 } #end of first {} in server
+
 
 
 
