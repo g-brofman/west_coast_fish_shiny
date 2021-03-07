@@ -20,6 +20,7 @@ fish_tree <- treemap(fish_by_gear,
                      type="index",
                      palette = "Set2",
                      fontsize.labels=c(15,12),
+                     fontcolor.labels=c("black","white"),
                      align.labels=list(
                        c("center", "top"),
                        c("center", "bottom")

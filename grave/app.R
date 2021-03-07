@@ -14,8 +14,16 @@ library(tidyverse)
 library(shinydashboard)
 library(shinythemes)
 library(hrbrthemes)
+library(d3Tree)
+library(ECharts2Shiny)
 
 fish <- data.table::fread(here("grave", "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
+
+westcoast_eez_raw <- read_csv(here("grave", "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
+
+fish_by_gear <- westcoast_eez_raw %>%
+  select(gear_type, tonnes, landed_value, commercial_group, common_name)
+
 
 my_theme <- bs_theme(
     bg = "slategray",
@@ -94,14 +102,14 @@ ui <- dashboardPage(skin = "blue",
                             tabItem(tabName = "tree_graph_tab",
                                     fluidRow(
                 shinydashboard::box(title = "Fish Catch by Gear",
-        selectInput("gear_type",
+        selectInput(inputId = "gear_type",
         label = h4("Choose Gear Type:"),
       choices = c(unique(fish_by_gear$gear_type) #end of unique
                      ),#end of c
       multiple = FALSE), #end of selectInput
             hr(),
-          fluidRow(column(3,
-          verbatimTextOutput("landed_value")) # changed hr to hr, just to see.
+          fluidRow(column(1)
+          # verbatimTextOutput("landed_value")) # changed br to hr, just to see.
                                                             )),#end of box
    shinydashboard::box(plotOutput(outputId = "fish_tree"),   #end of plotOutput
    #                     source(file = "treemap.R",
@@ -140,18 +148,42 @@ server <- function(input, output) {
 
     output$value <- renderPrint({ input$fishing_entity_name }) # this is the last thing I added
 
+gear_filtered <- reactive({
+  fish_by_gear %>%
+    filter(gear_type == input$gear_type)
+})
+
+
 
     ## Creating a reactive treeplot
-    output$fish_tree <- renderPlot({
-      source(file = "treemap.R", local = TRUE)
-        treemap(fish_by_gear,
-               index= c("commercial_group", "common_name"), # End of index
-               vSize="landed_value",
-               type="index") #end of treemap()
+    output$fish_tree <- renderTreeMap({
+      fish_tree <- treemap(gear_filtered(),
+                           index=c("commercial_group","common_name"),
+                           vSize="tonnes",
+                           type="index",
+                           palette = "Set2",
+                           fontsize.labels=c(15,12),
+                           fontcolor.labels=c("black","white"),
+                           align.labels=list(
+                             c("center", "top"),
+                             c("center", "bottom")
+                           )
+      ) #end of treemap()
+       #End onf d3tree3
+
+
+
+
+
+      # source(file = "treemap.R", local = TRUE)
+      #   treemap(fish_by_gear,
+      #          index= c("commercial_group", "common_name"), # End of index
+      #          vSize="landed_value",
+      #          type="index") #end of treemap()
 
 
     }) ## End of tree plot squiggle brackets.
-    output$landed_value <- renderPrint({input$gear_type})  # trying to have the renderPrint work for the tree graph tab!
+    #output$landed_value <- renderPrint({input$gear_type})  # trying to have the renderPrint work for the tree graph tab!
 
 } # End of server squigglies
 
