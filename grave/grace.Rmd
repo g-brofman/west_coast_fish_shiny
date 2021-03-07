@@ -1,0 +1,72 @@
+---
+title: "grace"
+author: "Grace Brofman"
+date: "2/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(shiny)
+library(bslib)
+library(palmerpenguins)
+library(tidyverse)
+library(shinydashboard)
+library(shinythemes)
+library(hrbrthemes)
+library(here)
+
+fish <- read_csv(here("west_coast_eez_data","SAU EEZ 848 v48-0.csv")) %>% 
+  select(4:16)
+
+
+# species by year by landed value
+fish_category <- fish %>% 
+  group_by(year, common_name) %>% 
+  summarize(landed_value = sum(landed_value))
+
+# species by year, landed value, and gear_type
+fish_category_gear <- fish %>% 
+  group_by(year, common_name, gear_type) %>% 
+  summarize(landed_value = sum(landed_value))
+
+# for graph: select species, plot time series and color/facet by gear type
+ggplot(data = fish_category_gear,
+       aes(x = year,
+           y = landed_value,
+           color = gear_type)) +
+  geom_col()
+
+# plot top 5 in 1950 vs top 5 in 2016 throughout the timeframe
+fish_1950 <- fish_category %>% 
+  filter(year == "1950") %>% 
+  arrange(-landed_value) %>% 
+  slice(1:5)
+# South American pilchard, Yellowfin tuna, Pacific jack mackerel, Skipjack tuna, Redfishes
+
+fish_2016 <- fish_category %>% 
+  filter(year == "2016") %>% 
+  arrange(-landed_value) %>% 
+  slice(1:6) # using 1:6 bc one of 1:5 was "Marine fishes nei"
+# North Pacific hake, California market squid, Dungeness crab, Pacific cupped oyster, Ocean shrimp
+
+top_1950_2016  <- fish_category %>% 
+  filter(common_name == c("South American pilchard", "Yellowfin tuna", "Pacific jack mackerel", "Skipjack tune", "Redfishes",  "California market squid", "Dungeness crab", "Pacific cupped oyster", "Ocean Shrimp"))
+
+ggplot(data = top_1950_2016,
+       aes(x = year,
+           y = landed_value)) +
+  geom_line(aes(color = common_name))
+
+ggplot(data = fish_category,
+       aes(x = year,
+           y = landed_value)) +
+  geom_line(aes(color = common_name)) +
+  theme(legend.position = "none") +
+  scale_y_continuous(trans = "log10")
+  
+```
+
