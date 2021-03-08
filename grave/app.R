@@ -14,23 +14,25 @@ library(tidyverse)
 library(shinydashboard)
 library(shinythemes)
 library(hrbrthemes)
+library(treemap)
 
 library(d3Tree)
 library(ECharts2Shiny)
+library(here)
+
+#hrbrthemes::import_roboto_condensed()
 
 #d fish <- data.table::fread(here("grave", "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
 
 #d westcoast_eez_raw <- read_csv(here("grave", "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
 
-#d fish_by_gear <- westcoast_eez_raw %>%
-#d   select(gear_type, tonnes, landed_value, commercial_group, common_name)
-
-=======
-library(here)
 
 # -----------------------------------------------------------------
 fish <- read_csv(here("west_coast_eez_data","SAU EEZ 848 v48-0.csv")) %>%
     select(4:16)
+
+fish_by_gear <- fish %>%
+    select(gear_type, tonnes, landed_value, commercial_group, common_name)
 
 # species by year, landed value, and gear_type
 fish_category_gear <- fish %>%
@@ -40,9 +42,9 @@ fish_category_gear <- fish %>%
 
 
 my_theme <- bs_theme(
-    bg = "slategray",
-    fg = "black",
-    primary = "black",
+    bg = "lightgreen",
+    fg = "midnightblue",
+    primary = "orange",
     base_font = font_google("Times")
 )
 
@@ -50,18 +52,15 @@ my_theme <- bs_theme(
 # icons below from: https://fontawesome.com/icons?d=gallery&q=world
 # Creating the user interface
 ui <- dashboardPage(skin = "blue",
-                    dashboardHeader(title = "Fish 4 Life"),
+                    dashboardHeader(title = "Display 'o Fish"),
                     dashboardSidebar(
                         sidebarMenu(id = "menu",
                                     menuItem("Home",
                                              tabName = "home_tab",
                                              icon = icon("fas fa-globe")),
-                                    menuItem("Home Item 2",
-                                             tabName = "test_tab",
-                                             icon = icon("fas fa-globe")),
                                     menuItem("Fishermen",
                                              tabName = "fishermen_tab",
-                                             icon = icon("fas fa-anchor")),
+                                             icon = icon("ship")),
                                     menuItem("Fish",
                                              tabName = "fish_graph_tab",
                                              icon = icon("fish")),
@@ -78,22 +77,24 @@ ui <- dashboardPage(skin = "blue",
                                       href = "https://en.wikipedia.org/wiki/Fish")#end of a
                                   )#end of p
                         ),#end of fluidPage
+
                         tabItems(
                             # took this next tab from a different example - it's not showing up yet
                             tabItem(tabName = "home_tab",
-                                    h3("I'm not showing up right now:"),
-                                    p("App summary:This application provides visualizations of fish landings within the EEZ of the West Coast of the U.S. Economic Exclusion Zones (EEZs) were implemented in 1983, allowing for nations to hold jurisdiction over natural resources along their coasts (NOAA). The United States exercises sovereign control over a 200 In this app you can observe visualizations of x, y, and z based on inputs of a,b, and c")#end of p
+                                    h3("App description:"),
+                                    p("App summary:This application provides visualizations of fish landings within the EEZ of the West Coast of the U.S. Economic Exclusion Zones (EEZs) were implemented in 1983, allowing for nations to hold jurisdiction over natural resources along their coasts (NOAA). The United States exercises sovereign control over a 200 mile width strip of ocean Along California, Oregon, and Washington (there is also an Alaskan EEZ, but is excluded from this app). In this app you can observe visualizations of fish landings by weight and value, gear type, and species from 1950 - 2016"),#end of p
+                                    p("Data source: data sets for this application were provided by Sea Around Us, a research initiative which collects fisheries-realted data around the world in an effort to assess the impact of fishereis"), # end of p
+                                    img(src = "sea_around_us.png"),
+                                    a("Sea Around Us",
+                                      href = "http://www.seaaroundus.org/",
+                                      align = "center") # end of a
                             ),#end of tabItem1
+
                             tabItem(tabName = "fishermen_tab",
                                     h3("Fish or not a fish?"),
+                                    p("word"),
                                     p("Description blah blah text")#end of p
                             ), # end of tabItem2
-                            tabItem(tabName = "test_tab",
-                                    h3("other interesting thing"),
-                                    p("WOW!"),#end of p
-                                    p("Data for this app was provided by Sea Around Us (link here)")#end of p
-                            ),#end of tabItem2_b
-
 
                             tabItem(tabName = "fish_graph_tab",
                                     fluidRow(
@@ -107,14 +108,14 @@ ui <- dashboardPage(skin = "blue",
 
                                                             ),#end of selectInput
                                                             hr(),
-                                                            fluidRow(column(3, verbatimTextOutput("value"))#end o fluidRow
+                                                            fluidRow(column(3, verbatimTextOutput("value"))#end of fluidRow
                                                             )),#end of box
 
                                         shinydashboard::box(plotOutput(outputId = "fish_plot")#end of plotOutput
                                         )#end of box
                                     )#end of fluidRow
-                            ),
-                            #end of tabItem3
+                            ),#end of tabItem3
+
                             tabItem(tabName = "tree_graph_tab",
                                     fluidRow(
                 shinydashboard::box(title = "Fish Catch by Gear",
@@ -158,7 +159,12 @@ server <- function(input, output) {
     output$fish_plot <- renderPlot({
 
         ggplot(data = fish_select(), aes(x = year, y = landed_value)) +
-            geom_point(aes(color = gear_type)) #removed point color aspect
+            geom_line() +
+        geom_smooth() +
+        theme_minimal() +
+        labs(x = "Year",
+             y = "Landed Value (USD)",
+             title = "Fish catch by landed value over time")
 
     })
 
@@ -173,7 +179,7 @@ gear_filtered <- reactive({
 
 
     ## Creating a reactive treeplot
-    output$fish_tree <- renderTreeMap({
+    output$fish_tree <- renderPlot({
       fish_tree <- treemap(gear_filtered(),
                            index=c("commercial_group","common_name"),
                            vSize="tonnes",
@@ -186,9 +192,11 @@ gear_filtered <- reactive({
                              c("center", "bottom")
                            )
       ) #end of treemap()
-       #End onf d3tree3
+       #End onf d3tree3]
 
+    }) ## End of tree plot squiggle brackets.
 
+      output$value <- renderPrint({ input$common_name })
 
 
 
@@ -199,13 +207,14 @@ gear_filtered <- reactive({
       #          type="index") #end of treemap()
 
 
-    }) ## End of tree plot squiggle brackets.
+
     #output$landed_value <- renderPrint({input$gear_type})  # trying to have the renderPrint work for the tree graph tab!
 
+
 } # End of server squigglies
-=======
-    output$value <- renderPrint({ input$common_name })
-} #end of first {} in server
+
+ #   output$value <- renderPrint({ input$common_name })
+#} #end of first {} in server
 
 
 
