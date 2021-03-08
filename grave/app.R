@@ -44,7 +44,7 @@ fish_category_gear <- fish %>%
 my_theme <- bs_theme(
     bg = "lightgreen",
     fg = "midnightblue",
-    primary = "orange",
+    primary = "lightblue",
     base_font = font_google("Times")
 )
 
@@ -66,7 +66,7 @@ ui <- dashboardPage(skin = "blue",
                                              icon = icon("fish")),
                                     menuItem("Gear",
                                              tabName = "tree_graph_tab",
-                                             icon = icon("fish")))),
+                                             icon = icon("anchor")))),
 
 
                     dashboardBody(
@@ -98,7 +98,7 @@ ui <- dashboardPage(skin = "blue",
 
                             tabItem(tabName = "fish_graph_tab",
                                     fluidRow(
-                                        shinydashboard::box(title = "Catch value by method graph",
+                                        shinydashboard::box(title = "Selection 1",
                                                             selectInput("common_name",
                                                                         label = h4("Choose fish species"),
                                                                         choices = c(unique(fish_category_gear$common_name)#end of unique
@@ -108,8 +108,24 @@ ui <- dashboardPage(skin = "blue",
 
                                                             ),#end of selectInput
                                                             hr(),
-                                                            fluidRow(column(3, verbatimTextOutput("value"))#end of fluidRow
-                                                            )),#end of box
+                                                            fluidRow(column(3, verbatimTextOutput("value"))#end of column
+                                                            )#end of fluidRow
+       ),#end of box
+
+                                        shinydashboard::box(title = "Selection 2",
+                                                            sliderInput("slider2",
+                                                                        label = h3("Select date range"),
+                                                                        min = 1950,
+                                                                        max = 2016,
+                                                                        value = c(1950, 2016)
+                                                                        ),#end of sliderInput
+                                                            hr(),
+                                                            fluidRow(column(4, verbatimTextOutput("range"))#end of column
+                                                                     )#end of fluidRow
+
+                                                            ), #end of box
+
+
 
                                         shinydashboard::box(plotOutput(outputId = "fish_plot")#end of plotOutput
                                         )#end of box
@@ -148,7 +164,8 @@ server <- function(input, output) {
 
     fish_select <- reactive({
         fish_category_gear %>%
-            filter(common_name == input$common_name)#end of filter
+            filter(common_name == input$common_name) %>%
+            filter(year %in% input$slider2) #input$slider2 identifies a range, but does it still need to be included in c(x:y)?
 
     }#end of reactive({})
     )#end of reactive
@@ -158,7 +175,7 @@ server <- function(input, output) {
 
     output$fish_plot <- renderPlot({
 
-        ggplot(data = fish_select(), aes(x = year, y = landed_value)) +
+        ggplot(data = fish_select(), aes(x = year, y = landed_value)) + #should x = input$slider2?
             geom_line() +
         geom_smooth() +
         theme_minimal() +
@@ -223,18 +240,6 @@ gear_filtered <- reactive({
 
 
 
-
-
-
-# ---------------------------------------------------------------------------
-# Create a reactive plot (this section doesn't work right now)
-# running this code causes an error and won't allow the app to run- is it because we don't have the radio buttons like on the earlier version?
-# output$fish_plot <- renderPlot({
-#
-#     ggplot(data = fish_select(), aes(x = year, y = catch_sum)) +
-#         geom_point(color = input$pt_color, size = 5)
-#
-# })
 
 # ---------------------------------------------------------------------------
 
