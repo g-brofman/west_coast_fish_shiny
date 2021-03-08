@@ -14,17 +14,37 @@ library(tidyverse)
 library(shinydashboard)
 library(shinythemes)
 library(hrbrthemes)
+
 library(d3Tree)
 library(ECharts2Shiny)
 library(here)
 library(treemap)
 
+<<<<<<< HEAD
 fish <- data.table::fread(here( "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
 
 westcoast_eez_raw <- read_csv(here("west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
+=======
+#d fish <- data.table::fread(here("grave", "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
 
-fish_by_gear <- westcoast_eez_raw %>%
-  select(gear_type, tonnes, landed_value, commercial_group, common_name)
+#d westcoast_eez_raw <- read_csv(here("grave", "west_coast_eez_data", "SAU EEZ 848 v48-0.csv"))
+
+#d fish_by_gear <- westcoast_eez_raw %>%
+#d   select(gear_type, tonnes, landed_value, commercial_group, common_name)
+
+=======
+library(here)
+>>>>>>> 07b5ee0fa816ca246db817f718ca22a0ad2490b8
+
+# -----------------------------------------------------------------
+fish <- read_csv(here("west_coast_eez_data","SAU EEZ 848 v48-0.csv")) %>%
+    select(4:16)
+
+# species by year, landed value, and gear_type
+fish_category_gear <- fish %>%
+    group_by(year, common_name, gear_type) %>%
+    summarize(landed_value = sum(landed_value))
+# -----------------------------------------------------------------
 
 
 my_theme <- bs_theme(
@@ -38,7 +58,7 @@ my_theme <- bs_theme(
 # icons below from: https://fontawesome.com/icons?d=gallery&q=world
 # Creating the user interface
 ui <- dashboardPage(skin = "blue",
-                    dashboardHeader(title = "Grace & Dylan luv fish"),
+                    dashboardHeader(title = "Fish 4 Life"),
                     dashboardSidebar(
                         sidebarMenu(id = "menu",
                                     menuItem("Home",
@@ -60,7 +80,7 @@ ui <- dashboardPage(skin = "blue",
 
                     dashboardBody(
                         fluidPage(theme = my_theme,
-                                  h3("Really important things about fish here"), #header on all tabs
+                                  h3("Visualizing fish landings on the West Coast"), #header on all tabs
                                   p("Fish tend to have two eyes", #subheader on all tabs
                                     a("What IS a fish exactly?", #subheader on all tabs
                                       href = "https://en.wikipedia.org/wiki/Fish")#end of a
@@ -70,33 +90,35 @@ ui <- dashboardPage(skin = "blue",
                             # took this next tab from a different example - it's not showing up yet
                             tabItem(tabName = "home_tab",
                                     h3("I'm not showing up right now:"),
-                                    p("This app will show blah blah blah")#end of p
+                                    p("App summary:This application provides visualizations of fish landings within the EEZ of the West Coast of the U.S. Economic Exclusion Zones (EEZs) were implemented in 1983, allowing for nations to hold jurisdiction over natural resources along their coasts (NOAA). The United States exercises sovereign control over a 200 In this app you can observe visualizations of x, y, and z based on inputs of a,b, and c")#end of p
                             ),#end of tabItem1
                             tabItem(tabName = "fishermen_tab",
                                     h3("Fish or not a fish?"),
                                     p("Description blah blah text")#end of p
                             ), # end of tabItem2
                             tabItem(tabName = "test_tab",
-                                    h3("About this app"),
-                                    p("This app shows blah blah blah for the West Coast of the U.S. In 1983, Economic Exclusion Zones (EEZs) were implemented. An EEZ is blah blah blah. In this app you can observe visualizations of x, y, and z based on inputs of a,b, and c."),#end of p
+                                    h3("other interesting thing"),
+                                    p("WOW!"),#end of p
                                     p("Data for this app was provided by Sea Around Us (link here)")#end of p
                             ),#end of tabItem2_b
 
-                tabItem(tabName = "fish_graph_tab",
-                fluidRow(
-               shinydashboard::box(title = "Catch sum by entity graph",
-                selectInput("fishing_entity_name",
-                label = h4("Choose entity name (country):"),
-       choices = c(unique(fish$fishing_entity_name)#end of unique
-                                      ),#end of c
+
+                            tabItem(tabName = "fish_graph_tab",
+                                    fluidRow(
+                                        shinydashboard::box(title = "Catch value by method graph",
+                                                            selectInput("common_name",
+                                                                        label = h4("Choose fish species"),
+                                                                        choices = c(unique(fish_category_gear$common_name)#end of unique
+                                                                        ),#end of c
                                                                         selected = 1,
        multiple = FALSE
 
                                                             ),#end of selectInput
                                                             hr(),
-                                                            fluidRow(column(3, verbatimTextOutput("value"))# also added this hr section, not doing anything
+                                                            fluidRow(column(3, verbatimTextOutput("value"))#end o fluidRow
                                                             )),#end of box
-         shinydashboard::box(plotOutput(outputId = "fish_plot") #end of plotOutput (here is where i ended in script, and it works!)
+
+                                        shinydashboard::box(plotOutput(outputId = "fish_plot")#end of plotOutput
                                         )#end of box
                                     )#end of fluidRow
                             ),
@@ -132,8 +154,8 @@ server <- function(input, output) {
 
 
     fish_select <- reactive({
-        fish %>%
-            filter(fishing_entity_name == input$fishing_entity_name)#end of filter
+        fish_category_gear %>%
+            filter(common_name == input$common_name)#end of filter
 
     }#end of reactive({})
     )#end of reactive
@@ -143,12 +165,13 @@ server <- function(input, output) {
 
     output$fish_plot <- renderPlot({
 
-        ggplot(data = fish_select(), aes(x = year, y = catch_sum)) +
-            geom_point() #removed point color aspect
+        ggplot(data = fish_select(), aes(x = year, y = landed_value)) +
+            geom_point(aes(color = gear_type)) #removed point color aspect
 
     })
 
-    output$value <- renderPrint({ input$fishing_entity_name }) # this is the last thing I added
+
+
 
 gear_filtered <- reactive({
   fish_by_gear %>%
@@ -189,6 +212,10 @@ gear_filtered <- reactive({
    #  output$landed_value <- renderPrint({input$gear_type})  # trying to have the renderPrint work for the tree graph tab!
 
 } # End of server squigglies
+
+ #   output$value <- renderPrint({ input$common_name })
+#} #end of first {} in server
+
 
 
 
