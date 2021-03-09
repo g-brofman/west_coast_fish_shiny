@@ -9,7 +9,6 @@
 
 library(shiny)
 library(bslib)
-library(palmerpenguins)
 library(tidyverse)
 library(shinydashboard)
 library(shinythemes)
@@ -56,7 +55,7 @@ my_theme <- bs_theme(
 
 # icons below from: https://fontawesome.com/icons?d=gallery&q=world
 # Creating the user interface
-ui <- dashboardPage(skin = "blue",
+ui <- dashboardPage(skin = "red",
                     dashboardHeader(title = "Display 'o Fish"),
                     dashboardSidebar(
                         sidebarMenu(id = "menu",
@@ -74,7 +73,9 @@ ui <- dashboardPage(skin = "blue",
                                              icon = icon("anchor")))),
 
 
-                    dashboardBody(
+                    dashboardBody(tags$head(
+                      tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+                    ), #end of tags$head
                         fluidPage(theme = my_theme,
                                   h1("Visualizing Fish Landings in the Pacific Coast Region EEZ"), #header on all tabs
                                  # p("Fish tend to have two eyes", #subheader on all tabs
@@ -98,12 +99,12 @@ ui <- dashboardPage(skin = "blue",
                             ),#end of tabItem1
 
                             tabItem(tabName = "fishermen_tab",
-                                    h3("Fish or not a fish?"),
-                                    p("word"),
+                                    h3("East vs. West Coast EEZ Comparison"),
                                     p("Description blah blah text")#end of p
                             ), # end of tabItem2
 
                             tabItem(tabName = "fish_graph_tab",
+                                    h3("Value of fish catch over time"),
                                     fluidRow(
                                         shinydashboard::box(title = "Selection 1", status = "primary", solidHeader = TRUE,
                                                             selectInput("common_name",
@@ -121,7 +122,7 @@ ui <- dashboardPage(skin = "blue",
 
                                         shinydashboard::box(title = "Selection 2", status = "primary", solidHeader = TRUE,
                                                             sliderInput("slider2",
-                                                                        label = h3("Select date range"),
+                                                                        label = h4("Select date range"),
                                                                         min = 1950,
                                                                         max = 2016,
                                                                         value = c(1950, 2016)
@@ -140,6 +141,7 @@ ui <- dashboardPage(skin = "blue",
                             ),#end of tabItem3
 
                             tabItem(tabName = "tree_graph_tab",
+                                    h3("Descriptive subtitle here"),
                                     fluidRow(
                 shinydashboard::box(title = "Fish Catch by Gear",
         selectInput(inputId = "gear_type",
@@ -183,8 +185,8 @@ server <- function(input, output) {
     output$fish_plot <- renderPlot({
 
         ggplot(data = fish_select(), aes(x = year, y = landed_value)) + #should x = input$slider2?
-            geom_point() +
-        geom_smooth() +
+            geom_point(color = "darkblue") +
+        geom_smooth(color = "cornflowerblue") +
         theme_minimal() +
         labs(x = "Year",
              y = "Landed Value (USD)",
