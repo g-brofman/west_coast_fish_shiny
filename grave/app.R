@@ -36,15 +36,20 @@ fish_by_gear <- fish %>%
 
 # species by year, landed value, and gear_type
 fish_category_gear <- fish %>%
-    group_by(year, common_name, gear_type) %>%
+    group_by(year, common_name) %>%
     summarize(landed_value = sum(landed_value))
+
+#fish_category_gear$year <- as.Date(fish_category_gear$year, "%Y")
+
+
 # -----------------------------------------------------------------
 
 
 my_theme <- bs_theme(
-    bg = "lightgreen",
+    bg = "lightgrey",
     fg = "midnightblue",
-    primary = "lightblue",
+    primary = "midnightblue",
+    secondary = "yellow",
     base_font = font_google("Times")
 )
 
@@ -71,19 +76,21 @@ ui <- dashboardPage(skin = "blue",
 
                     dashboardBody(
                         fluidPage(theme = my_theme,
-                                  h3("Visualizing fish landings on the West Coast"), #header on all tabs
-                                  p("Fish tend to have two eyes", #subheader on all tabs
-                                    a("What IS a fish exactly?", #subheader on all tabs
-                                      href = "https://en.wikipedia.org/wiki/Fish")#end of a
-                                  )#end of p
+                                  h1("Visualizing Fish Landings in the Pacific Coast Region EEZ"), #header on all tabs
+                                 # p("Fish tend to have two eyes", #subheader on all tabs
+                                  #  a("What IS a fish exactly?", #subheader on all tabs
+                                  #    href = "https://en.wikipedia.org/wiki/Fish")#end of a
+                                #  )#end of p
                         ),#end of fluidPage
 
                         tabItems(
                             # took this next tab from a different example - it's not showing up yet
                             tabItem(tabName = "home_tab",
-                                    h3("App description:"),
-                                    p("App summary:This application provides visualizations of fish landings within the EEZ of the West Coast of the U.S. Economic Exclusion Zones (EEZs) were implemented in 1983, allowing for nations to hold jurisdiction over natural resources along their coasts (NOAA). The United States exercises sovereign control over a 200 mile width strip of ocean Along California, Oregon, and Washington (there is also an Alaskan EEZ, but is excluded from this app). In this app you can observe visualizations of fish landings by weight and value, gear type, and species from 1950 - 2016"),#end of p
+                                    h3("Introduction:"),
+                                    p("This interface provides visualizations of fish landings within the EEZ of the West Coast of the U.S. Economic Exclusion Zones (EEZs) were implemented in 1983, allowing for nations to hold jurisdiction over natural resources along their coasts (NOAA). The United States exercises sovereign control over a 200 mile width strip of ocean Along California, Oregon, and Washington (there is also an Alaskan EEZ, but is excluded from this app). In this app you can observe visualizations of fish landings by weight and value, gear type, and species from 1950 - 2016"),#end of p
                                     p("Data source: data sets for this application were provided by Sea Around Us, a research initiative which collects fisheries-realted data around the world in an effort to assess the impact of fishereis"), # end of p
+                                    img(src = "eez.jpeg", height = 500),
+                                    a("Source: NOAA"),
                                     img(src = "sea_around_us.png"),
                                     a("Sea Around Us",
                                       href = "http://www.seaaroundus.org/",
@@ -98,12 +105,12 @@ ui <- dashboardPage(skin = "blue",
 
                             tabItem(tabName = "fish_graph_tab",
                                     fluidRow(
-                                        shinydashboard::box(title = "Selection 1",
+                                        shinydashboard::box(title = "Selection 1", status = "primary", solidHeader = TRUE,
                                                             selectInput("common_name",
                                                                         label = h4("Choose fish species"),
                                                                         choices = c(unique(fish_category_gear$common_name)#end of unique
                                                                         ),#end of c
-                                                                        selected = 1,
+                                                                        selected = "Coho salmon",
        multiple = FALSE
 
                                                             ),#end of selectInput
@@ -112,7 +119,7 @@ ui <- dashboardPage(skin = "blue",
                                                             )#end of fluidRow
        ),#end of box
 
-                                        shinydashboard::box(title = "Selection 2",
+                                        shinydashboard::box(title = "Selection 2", status = "primary", solidHeader = TRUE,
                                                             sliderInput("slider2",
                                                                         label = h3("Select date range"),
                                                                         min = 1950,
@@ -120,14 +127,14 @@ ui <- dashboardPage(skin = "blue",
                                                                         value = c(1950, 2016)
                                                                         ),#end of sliderInput
                                                             hr(),
-                                                            fluidRow(column(4, verbatimTextOutput("range"))#end of column
+                                                            fluidRow(column(3, verbatimTextOutput("range"))#end of column
                                                                      )#end of fluidRow
 
                                                             ), #end of box
 
 
 
-                                        shinydashboard::box(plotOutput(outputId = "fish_plot")#end of plotOutput
+                                        shinydashboard::box(plotOutput(outputId = "fish_plot", height = 300, width = 700)#end of plotOutput
                                         )#end of box
                                     )#end of fluidRow
                             ),#end of tabItem3
@@ -165,7 +172,7 @@ server <- function(input, output) {
     fish_select <- reactive({
         fish_category_gear %>%
             filter(common_name == input$common_name) %>%
-            filter(year %in% input$slider2) #input$slider2 identifies a range, but does it still need to be included in c(x:y)?
+            filter(year >= input$slider2[1], year <= input$slider2[2]) #input$slider2 identifies a range, but does it still need to be included in c(x:y)?
 
     }#end of reactive({})
     )#end of reactive
@@ -176,7 +183,7 @@ server <- function(input, output) {
     output$fish_plot <- renderPlot({
 
         ggplot(data = fish_select(), aes(x = year, y = landed_value)) + #should x = input$slider2?
-            geom_line() +
+            geom_point() +
         geom_smooth() +
         theme_minimal() +
         labs(x = "Year",
@@ -213,19 +220,8 @@ gear_filtered <- reactive({
 
     }) ## End of tree plot squiggle brackets.
 
-      output$value <- renderPrint({ input$common_name })
 
 
-
-      # source(file = "treemap.R", local = TRUE)
-      #   treemap(fish_by_gear,
-      #          index= c("commercial_group", "common_name"), # End of index
-      #          vSize="landed_value",
-      #          type="index") #end of treemap()
-
-
-
-    #output$landed_value <- renderPrint({input$gear_type})  # trying to have the renderPrint work for the tree graph tab!
 
 
 } # End of server squigglies
