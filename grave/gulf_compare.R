@@ -51,3 +51,4 @@ summary_2 <- fish_counts_summarized %>%
   mutate(percent_reported = Reported/(Reported+Unreported)*100) %>%
   select(commercial_group, area_name, tonnes, landed_value, percent_reported)
 
+# changing to merge
