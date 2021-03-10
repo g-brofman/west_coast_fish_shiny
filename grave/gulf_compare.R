@@ -39,8 +39,7 @@ fish_counts_summarized <- fish_counts %>%
   summarize(landed_value = sum(landed_value, na.rm = TRUE),
             tonnes = sum(tonnes, na.rm = TRUE),
             Unreported = sum(Unreported, na.rm = TRUE),
-            Reported = sum(Reported, na.rm = TRUE)) %>%
-  summarize()
+            Reported = sum(Reported, na.rm = TRUE))
 
 summary_2 <- fish_counts_summarized %>%
   group_by(commercial_group, area_name) %>%
@@ -52,3 +51,47 @@ summary_2 <- fish_counts_summarized %>%
   select(commercial_group, area_name, tonnes, landed_value, percent_reported)
 
 # changing to merge
+# parallel coordinates plot example
+
+# Libraries
+library(tidyverse)
+library(hrbrthemes)
+library(patchwork)
+library(GGally)
+library(viridis)
+
+# Data set is provided by R natively
+data <- iris
+
+iris_data <- iris
+
+# Plot
+data %>%
+  ggparcoord(
+    columns = 1:4, groupColumn = 5, order = "anyClass",
+    showPoints = TRUE,
+    title = "Parallel Coordinate Plot for the Iris Data",
+    alphaLines = 0.3
+  ) +
+  scale_color_viridis(discrete=TRUE) +
+  theme_ipsum()+
+  theme(
+    plot.title = element_text(size=10)
+  )
+
+summary_factor <- summary_2 %>%
+  mutate(commercial_group = as.factor(commercial_group)) %>%
+  mutate(area_name = as.factor(area_name))
+
+summary_factor %>%
+  ggparcoord(
+    columns = 3:5, groupColumn = 2, order = "anyClass",
+    showPoints = TRUE,
+    title = "Parallel Coordinate Plot for Coastal Data",
+    alphaLines = 0.3
+  ) +
+  scale_color_discrete(c("blue", "red")) +
+  theme_ipsum()+
+  theme(
+    plot.title = element_text(size=10)
+  )
