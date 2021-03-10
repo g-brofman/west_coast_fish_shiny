@@ -14,6 +14,9 @@ library(shinydashboard)
 library(shinythemes)
 library(hrbrthemes)
 library(treemap)
+library(patchwork)
+library(GGally)
+library(viridis)
 
 library(d3Tree)
 library(ECharts2Shiny)
@@ -62,15 +65,17 @@ ui <- dashboardPage(skin = "red",
                                     menuItem("Home",
                                              tabName = "home_tab",
                                              icon = icon("fas fa-globe")),
-                                    menuItem("Fishermen",
-                                             tabName = "fishermen_tab",
-                                             icon = icon("ship")),
-                                    menuItem("Fish",
+                                    menuItem("Fish Species",
                                              tabName = "fish_graph_tab",
                                              icon = icon("fish")),
-                                    menuItem("Gear",
+                                    menuItem("Gear Types",
                                              tabName = "tree_graph_tab",
-                                             icon = icon("anchor")))),
+                                             icon = icon("anchor")),
+                                    menuItem("Regional Comparison",
+                                             tabName = "fishermen_tab",
+                                             icon = icon("ship"))
+
+                                    )),
 
 
                     dashboardBody(tags$head(
@@ -91,8 +96,11 @@ ui <- dashboardPage(skin = "red",
                                     p("This interface provides visualizations of fish landings within the EEZ of the West Coast of the U.S. Economic Exclusion Zones (EEZs) were implemented in 1983, allowing for nations to hold jurisdiction over natural resources along their coasts (NOAA). The United States exercises sovereign control over a 200 mile width strip of ocean Along California, Oregon, and Washington (there is also an Alaskan EEZ, but is excluded from this app). In this app you can observe visualizations of fish landings by weight and value, gear type, and species from 1950 - 2016"),#end of p
                                     p("Data source: data sets for this application were provided by Sea Around Us, a research initiative which collects fisheries-realted data around the world in an effort to assess the impact of fishereis"), # end of p
                                     img(src = "eez.jpeg", height = 500),
+                                    h4(""),
                                     a("Source: NOAA"),
+                                    h4(""),
                                     img(src = "sea_around_us.png"),
+                                    h4(""),
                                     a("Sea Around Us",
                                       href = "http://www.seaaroundus.org/",
                                       align = "center") # end of a
@@ -100,7 +108,19 @@ ui <- dashboardPage(skin = "red",
 
                             tabItem(tabName = "fishermen_tab",
                                     h3("East vs. West Coast EEZ Comparison"),
-                                    p("Description blah blah text")#end of p
+                                    fluidPage(
+                                      shinydashboard::box(plotOutput(outputId = "e_w_plot", height = 300, width = 700)#end of plotOutput
+                                                          ), # end of box (where plot will go)
+                                      shinydashboard::box(checkboxGroupInput("checkGroup", label = h3("Select fishing sector"),
+                                                                         choices = list("Artisanal" = 1, "Industrial" = 2, "Recreational" = 3),
+                                                                         selected = 1),
+
+                                                            hr(),
+                                                            fluidRow(column(3, verbatimTextOutput("value_tbd")))) #(where radio buttons are specified)
+
+
+
+                                    ) #end of fluidPage
                             ), # end of tabItem2
 
                             tabItem(tabName = "fish_graph_tab",
@@ -136,8 +156,10 @@ ui <- dashboardPage(skin = "red",
 
 
                                         shinydashboard::box(plotOutput(outputId = "fish_plot", height = 300, width = 700)#end of plotOutput
-                                        )#end of box
-                                    )#end of fluidRow
+                                        ),#end of box
+
+                                    ),#end of fluidRow
+       p("description here")
                             ),#end of tabItem3
 
                             tabItem(tabName = "tree_graph_tab",
@@ -153,11 +175,13 @@ ui <- dashboardPage(skin = "red",
           fluidRow(column(1)
           # verbatimTextOutput("landed_value")) # changed br to hr, just to see.
                                                             )),#end of box
-   shinydashboard::box(plotOutput(outputId = "fish_tree"),   #end of plotOutput
+      h4(""),
+   shinydashboard::box(plotOutput(outputId = "fish_tree", width = 600),   #end of plotOutput
    #                     source(file = "treemap.R",
    #                            local = TRUE),    #end of source()
                        ), #end of box
-                                    ) #end of fluidRow
+                                    ), #end of fluidRow
+   p("description here")
                             ) #end of tabItem4
                         ) #end of tabItems
 
@@ -174,7 +198,7 @@ server <- function(input, output) {
     fish_select <- reactive({
         fish_category_gear %>%
             filter(common_name == input$common_name) %>%
-            filter(year >= input$slider2[1], year <= input$slider2[2]) #input$slider2 identifies a range, but does it still need to be included in c(x:y)?
+            filter(year >= input$slider2[1], year <= input$slider2[2])
 
     }#end of reactive({})
     )#end of reactive
@@ -223,14 +247,10 @@ gear_filtered <- reactive({
     }) ## End of tree plot squiggle brackets.
 
 
-
+ #   output$value <- renderPrint({ input$checkGroup })
 
 
 } # End of server squigglies
-
- #   output$value <- renderPrint({ input$common_name })
-#} #end of first {} in server
-
 
 
 
