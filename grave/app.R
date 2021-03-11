@@ -31,7 +31,7 @@ fish_1 <- read_csv(here("west_coast_eez_data","SAU EEZ 848 v48-0.csv")) %>%
     select(4:16)
 
 fish_annual <- fish_1 %>%
-  group_by(year) %>%
+  group_by(year, common_name) %>%
   summarize(tonnes = sum(tonnes))
 
 fish_by_gear <- fish_1 %>%
@@ -254,6 +254,7 @@ server <- function(input, output) {
 
     fish_select2 <- reactive({
       fish_annual %>%
+        filter(common_name == input$common_name) %>%
         filter(year >= input$slider2[1], year <= input$slider2[2] )
 
     }) # end of reactive({})
