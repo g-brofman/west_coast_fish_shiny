@@ -41,6 +41,7 @@ fish_counts_summarized <- fish_counts %>%
             Unreported = sum(Unreported, na.rm = TRUE),
             Reported = sum(Reported, na.rm = TRUE))
 
+
 summary_2 <- fish_counts_summarized %>%
   group_by(commercial_group, area_name) %>%
   summarize(Unreported = sum(Unreported, na.rm = TRUE),
@@ -49,6 +50,7 @@ summary_2 <- fish_counts_summarized %>%
             tonnes = sum(tonnes, na.rm = TRUE)) %>%
   mutate(percent_reported = Reported/(Reported+Unreported)*100) %>%
   select(commercial_group, area_name, tonnes, landed_value, percent_reported)
+
 
 # changing to merge
 # parallel coordinates plot example
@@ -95,3 +97,4 @@ summary_factor %>%
   theme(
     plot.title = element_text(size=10)
   )
+
