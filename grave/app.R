@@ -158,8 +158,11 @@ ui <- dashboardPage(skin = "red",
                                       shinydashboard::box(plotOutput(outputId = "e_w_plot", height = 300, width = 700)#end of plotOutput
                                                           ), # end of box (where plot will go)
                                       shinydashboard::box(checkboxGroupInput("checkGroup", label = h3("Select fishing sector"),
-                                                                         choices = list("Artisanal" = 1, "Industrial" = 2, "Recreational" = 3),
+                                                                            all_fish$fishing_sector,
+     choices = list("Artisanal" = 1, "Industrial" = 2, "Recreational" = 3),
                                                                          selected = 1),
+
+
 
                                                             hr(),
                                                             fluidRow(column(3, verbatimTextOutput("value_tbd")))) #(where radio buttons are specified)
@@ -287,6 +290,12 @@ server <- function(input, output) {
 
 
 
+sector_selected <- reactive({
+  all_fish %>%
+    filter(fishing_sector == input$fishing_sector)
+}) #End or sector_selected
+
+
 
 
 
@@ -295,6 +304,21 @@ gear_filtered <- reactive({
     filter(gear_type == input$gear_type)
 })
 
+
+output$e_w_plot <- renderPlot({
+  e_w_plot <- summary_factor %>%
+    ggparcoord(
+      columns = 3:5, groupColumn = 2, order = "anyClass",
+      showPoints = TRUE,
+      title = "Parallel Coordinate Plot for Coastal Data",
+      alphaLines = 0.3
+    ) +
+    scale_color_discrete(c("blue", "red")) +
+    theme_ipsum()+
+    theme(
+      plot.title = element_text(size=10)
+    )
+}) # end of of renderPlot squiggles
 
 
     ## Creating a reactive treeplot
