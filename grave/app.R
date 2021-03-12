@@ -70,25 +70,31 @@ all_fish <- full_join(fish, fish_gulf, by = c("area_name",
 ## Below are two lengthy wrangling steps to get two rows for each commercial group of fish. One for each area (Gulf of Mexico, West Coast.) These rows include the percentage reported, tonnes, and landed value.
 
 fish_counts <- all_fish %>%
-  group_by(commercial_group, area_name, landed_value, tonnes) %>%
+  group_by(commercial_group, area_name, landed_value, tonnes, fishing_sector) %>%
   count(reporting_status) %>%
   pivot_wider(names_from = reporting_status, values_from = n)
 
 fish_counts_summarized <- fish_counts %>%
-  group_by(commercial_group, area_name, Unreported, Reported) %>%
+  group_by(commercial_group, area_name, Unreported, Reported, fishing_sector) %>%
   summarize(landed_value = sum(landed_value, na.rm = TRUE),
             tonnes = sum(tonnes, na.rm = TRUE),
             Unreported = sum(Unreported, na.rm = TRUE),
             Reported = sum(Reported, na.rm = TRUE))
 
 summary_2 <- fish_counts_summarized %>%
-  group_by(commercial_group, area_name) %>%
+  group_by(commercial_group, area_name, fishing_sector) %>%
   summarize(Unreported = sum(Unreported, na.rm = TRUE),
             Reported = sum(Reported, na.rm = TRUE),
             landed_value = sum(landed_value, na.rm = TRUE),
             tonnes = sum(tonnes, na.rm = TRUE)) %>%
   mutate(percent_reported = Reported/(Reported+Unreported)*100) %>%
-  select(commercial_group, area_name, tonnes, landed_value, percent_reported)
+  select(commercial_group, area_name, tonnes, landed_value, percent_reported, fishing_sector)
+
+
+summary_factor <- summary_2 %>%
+  mutate(commercial_group = as.factor(commercial_group)) %>%
+  mutate(area_name = as.factor(area_name)) %>%
+  mutate(fishing_sector = as.factor(fishing_sector))
 
 # -------------------end of E vs. W code wrangling------------------------
 
@@ -128,7 +134,7 @@ ui <- dashboardPage(skin = "red",
                       tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
                     ), #end of tags$head
                         fluidPage(theme = my_theme,
-                                  h1("Visualizing Fish Landings in the Pacific Coast Region EEZ") #header on all tabs
+                                  h2("Visualizing Fish Landings within the West Coast Economic Exlcusion Zone") #header on all tabs
                                  # p("Fish tend to have two eyes", #subheader on all tabs
                                   #  a("What IS a fish exactly?", #subheader on all tabs
                                   #    href = "https://en.wikipedia.org/wiki/Fish")#end of a
@@ -140,10 +146,18 @@ ui <- dashboardPage(skin = "red",
                             tabItem(tabName = "home_tab",
                                     h3("Introduction:"),
                                     p("This interface provides visualizations of fish landings within the EEZ of the West Coast of the U.S. Economic Exclusion Zones (EEZs) were implemented in 1983, allowing for nations to hold jurisdiction over natural resources along their coasts (NOAA). The United States exercises sovereign control over a 200 mile width strip of ocean Along California, Oregon, and Washington (there is also an Alaskan EEZ, but is excluded from this app). In this app you can observe visualizations of fish landings by weight and value, gear type, and species from 1950 - 2016"),#end of p
-                                    p("Data source: data sets for this application were provided by Sea Around Us, a research initiative which collects fisheries-realted data around the world in an effort to assess the impact of fishereis"), # end of p
+
                                     img(src = "eez.jpeg", height = 500),
                                     h4(""),
                                     a("Source: NOAA"),
+                                    h4("Using Display O' Fish:"),
+                                    p("
+Selecting a tab on the left sidebar will take you to a new page. Each tab contains a different visualization of fish catch trends based on inputs such as timeframe, gear used, and fishing sector. Some tabs produce graphs which may be wider than the page. If you encounter this issue, simply click the main menu button in the top left corner of the red header bar, and the graph width will change to fit your screen."),
+                                    h4("Data:"),
+                                    p("
+Data sets for this application were provided by Sea Around Us, a research initiative which compiles fisheries-related data from around the world in an effort to assess the impact of fisheries. The data sets here contain observations specific to the West and Gulf Coast EEZs, including year, catch by weight and value, species type, fishing method, industry type, catch type (e.g. discard vs. landings), and reporting status."),
+                                    h4("Source:"),
+                                    p("Pauly D, Zeller D, and Palomares M.L.D. (Editors) (2020) Sea Around Us Concepts, Design and Data (www.seaaroundus.org)"),
                                     h4(""),
                                     img(src = "sea_around_us.png"),
                                     h4(""),
@@ -153,16 +167,19 @@ ui <- dashboardPage(skin = "red",
                             ),#end of tabItem1
 
                             tabItem(tabName = "fishermen_tab",
-                                    h3("East vs. West Coast EEZ Comparison"),
+                                h3("West Coast EEZ vs. Gulf Coast Comparison"),
                                     fluidPage(
-                                      shinydashboard::box(plotOutput(outputId = "e_w_plot", height = 300, width = 700)#end of plotOutput
+                                      shinydashboard::box(plotOutput(outputId = "e_w_plot", width = 1000)#end of plotOutput
                                                           ), # end of box (where plot will go)
-                                      shinydashboard::box(checkboxGroupInput("checkGroup", label = h3("Select fishing sector"),
-                                                                         choices = list("Artisanal" = 1, "Industrial" = 2, "Recreational" = 3),
-                                                                         selected = 1),
+                                      shinydashboard::box(radioButtons(
+                                        inputId = "sector_choice",
+                                        label = "Choose one Fishing Sector",
+                                        choices = c("Industrial", "Artisanal", "Recreational"),
+                                        selected = "Industrial"),
+
 
                                                             hr(),
-                                                            fluidRow(column(3, verbatimTextOutput("value_tbd")))) #(where radio buttons are specified)
+                                                            fluidRow(column(3, verbatimTextOutput("fishing_sector")))) #(where radio buttons are specified)
 
                                     ) #end of fluidPage
                             ), # end of tabItem2
@@ -200,16 +217,16 @@ ui <- dashboardPage(skin = "red",
                                         shinydashboard::box(plotOutput(outputId = "fish_plot", height = 300, width = 700)#end of plotOutput
                                         ),#end of box
        h4("second plot title"),
-                                        shinydashboard::box(plotOutput(outputId = "fish_plot2", height = 300, width = 700)) #end of plotOutput
+                                        shinydashboard::box(plotOutput(outputId = "fish_plot2", height = 300, width = 700)), #end of plotOutput
+       p("Play with different fish-types and year ranges. You'll notice how tons and dollar-values can mirror each other with fish like Coho Salmon, or see major swings with the likes of Arrowtooth Flounder")
 
 # ----------- box 2 will start here
                                     ),#end of fluidRow
-       p("description here")
                             ),#end of tabItem3
 
 
                             tabItem(tabName = "tree_graph_tab",
-                                    h3("Descriptive subtitle here"),
+                                    p("By selecting one gear type, you will see the of fish caught with that gear in a tree map. The size of the rectangles is based on the tons of each fish species caught. Commercial groups of fish are broken up by color."),
                                     fluidRow(
                 shinydashboard::box(title = "Fish Catch by Gear",
         selectInput(inputId = "gear_type",
@@ -223,10 +240,12 @@ ui <- dashboardPage(skin = "red",
                                                             )),#end of box
       img(src = "gillnet.png", height = 210, width = 320),
 
-   shinydashboard::box(plotOutput(outputId = "fish_tree", width = 750)   #end of plotOutput
+   shinydashboard::box(plotOutput(outputId = "fish_tree", width = 750)
+                       #end of plotOutput
    #                     source(file = "treemap.R",
    #                            local = TRUE),    #end of source()
-                       ) #end of box
+                       ),#end of box
+   p("In the Treemap above, you can see how much of any fish species or fish-group are caught by different fishing gear types. Explore how some gear types bring in diverse fish, while others land a few high-demand species. These figues can show how certain fisheries have been fished over the last half-century, as this data accounts for fish caught between 1950-2016") #end of p
 
 ) #end of fluidRow
                             ) #end of tabItem4
@@ -277,14 +296,20 @@ server <- function(input, output) {
 
       ggplot(data = fish_select2(),
              aes(x = year, y = tonnes)) +
-        geom_point(color = "red") +
-        geom_smooth(color = "blue") +
+        geom_point(color = "red4") +
+        geom_smooth(color = "red") +
         theme_minimal() +
         labs(x = "Year",
              y = "Landed Tonnes",
-             title = "Fish catch by landed tonnes over time")
+             title = "Fish catch by landed, tons over time")
     })
 
+
+
+sector_selected <- reactive({
+  summary_factor %>%
+    filter(fishing_sector == input$sector_choice)
+}) #End or sector_selected
 
 
 
@@ -292,7 +317,34 @@ server <- function(input, output) {
 
 gear_filtered <- reactive({
   fish_by_gear %>%
-    filter(gear_type == input$gear_type)
+    filter(gear_type == input$gear_type) %>%
+    mutate(Tons = tonnes)
+})
+
+
+output$e_w_plot <- renderPlot({
+  sector_selected()  %>%
+    ggparcoord(
+      columns = 3:5, groupColumn = 2, order = "anyClass",
+      showPoints = TRUE,
+      title = "Comparing West Coast Fish Landings with the Gulf of Mexico",
+      alphaLines = 0.3
+    ) +
+    scale_color_discrete("#0D0C4D", "darkred") +
+    theme_ipsum()+
+    theme(
+      plot.title = element_text(size=10),
+      legend.title = element_blank()) +
+    labs(x = "Fishing Variables",
+         y = "Relative Scale") +
+    scale_x_discrete(labels=c("Percent Reported","Tons Caught","Landed Value (USD)"))
+
+
+}) # end of of renderPlot squiggles
+
+## Output for radio button (region comparison)
+output$txt <- renderText({
+  paste("You chose", input$sector_choice)
 })
 
 
@@ -301,14 +353,15 @@ gear_filtered <- reactive({
     output$fish_tree <- renderPlot({
       fish_tree <- treemap(gear_filtered(),
                            index=c("commercial_group","common_name"),
-                           vSize="tonnes",
+                           vSize="Tons",
                            type="index",
                            palette = "Set2",
                            fontsize.labels=c(15,12),
                            fontcolor.labels=c("black","white"),
                            align.labels=list(
                              c("center", "top"),
-                             c("center", "bottom")
+                             c("center", "bottom"),
+                             format.legend = list(scientific = FALSE, big.mark = " ")
                            )
       ) #end of treemap()
        #End onf d3tree3]
