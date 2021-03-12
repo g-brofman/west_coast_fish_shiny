@@ -179,7 +179,8 @@ Data sets for this application were provided by Sea Around Us, a research initia
 
 
                                                             hr(),
-                                                            fluidRow(column(3, verbatimTextOutput("fishing_sector")))) #(where radio buttons are specified)
+                                                            fluidRow(column(3, verbatimTextOutput("fishing_sector")))),
+                                      p("Select a fishing sector to compare the Gulf Coast and West Coast fisheries. Each line on this graph is a different fish group, like Shrimps or Flatfishes. The Y-axis shows values relative to the other 11 observations, as it accounts for percentage of reported catch, tons landed, and landed value in dollars."), #(where radio buttons are specified)
 
                                     ) #end of fluidPage
                             ), # end of tabItem2
