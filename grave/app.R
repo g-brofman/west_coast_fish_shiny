@@ -147,7 +147,7 @@ ui <- dashboardPage(skin = "red",
                                     h3("Introduction:"),
                                     p("This interface provides visualizations of fish landings within the EEZ of the West Coast of the U.S. Economic Exclusion Zones (EEZs) were implemented in 1983, allowing for nations to hold jurisdiction over natural resources along their coasts (NOAA). The United States exercises sovereign control over a 200 mile width strip of ocean Along California, Oregon, and Washington (there is also an Alaskan EEZ, but is excluded from this app). In this app you can observe visualizations of fish landings by weight and value, gear type, and species from 1950 - 2016"),#end of p
 
-                                    img(src = "eez.jpeg", height = 500),
+                                     img(src = "eez.jpeg", height = 500),
                                     h4(""),
                                     a("Source: NOAA"),
                                     h4("Using Display O' Fish:"),
